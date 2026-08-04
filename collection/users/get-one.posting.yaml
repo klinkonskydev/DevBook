@@ -1,0 +1,2 @@
+name: get one
+url: $BASE_URL/users/1
