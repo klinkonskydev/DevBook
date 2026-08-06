@@ -2,7 +2,6 @@ package database
 
 import (
 	"database/sql"
-	"fmt"
 
 	"api/src/config"
 
@@ -11,7 +10,6 @@ import (
 
 // Connect opens connection with database
 func Connect() (*sql.DB, error) {
-  fmt.Println(config.DataSourceName)
 	db, err := sql.Open("mysql", config.DataSourceName)
 
 	if err != nil {

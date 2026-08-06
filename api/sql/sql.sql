@@ -11,3 +11,5 @@ CREATE TABLE users(
   passwordHash varchar(20) not null unique,
   createdAt timestamp default current_timestamp()
 ) ENGINE=INNODB;
+
+CREATE FULLTEXT INDEX search_idx ON users(name, nickname)
