@@ -6,7 +6,7 @@ import (
 	"github.com/gorilla/mux"
 )
 
-func Gerar() *mux.Router {
+func New() *mux.Router {
 	r := mux.NewRouter()
 	return routes.Setup(r)
 }

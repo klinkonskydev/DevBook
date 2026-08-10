@@ -10,10 +10,12 @@ import (
 )
 
 var (
-  // DataSourceName is a connection string for mysql-server
+	// DataSourceName is a connection string for mysql-server
 	DataSourceName = ""
-  // Port is a port where the API will be running
-	Port       = 0
+	// Port is a port where the API will be running
+	Port = 0
+	// SecretKey is the key that will be assigned to the token
+	SecretKey []byte
 )
 
 // LoadEnvironmentVariables will load the environment variables
@@ -26,17 +28,18 @@ func LoadEnvironmentVariables() {
 	}
 
 	Port, err = strconv.Atoi(os.Getenv("API_PORT"))
-
 	if err != nil {
 		Port = 5000
 	}
 
 	DataSourceName = fmt.Sprintf(
-		"%s:%s@tcp(%s:%s)/%s?charset=utf8&parseTime=True&loc=Local", 
+		"%s:%s@tcp(%s:%s)/%s?charset=utf8&parseTime=True&loc=Local",
 		os.Getenv("DB_USER"),
 		os.Getenv("DB_PASSWORD"),
 		os.Getenv("DB_HOST"),
 		os.Getenv("DB_PORT"),
 		os.Getenv("DB_NAME"),
 	)
+
+	SecretKey = []byte(os.Getenv("SECRET_KEY"))
 }

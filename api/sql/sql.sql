@@ -8,8 +8,8 @@ CREATE TABLE users(
   name varchar(50) not null,
   nickname varchar(50) not null unique,
   email varchar(50) not null unique,
-  passwordHash varchar(20) not null unique,
+  password varchar(100) not null,
   createdAt timestamp default current_timestamp()
 ) ENGINE=INNODB;
 
-CREATE FULLTEXT INDEX search_idx ON users(name, nickname)
+CREATE FULLTEXT INDEX search_idx ON users(name, nickname);

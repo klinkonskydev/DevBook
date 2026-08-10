@@ -11,7 +11,7 @@ import (
 func main() {
 	config.LoadEnvironmentVariables()
 
-	r := router.Gerar()
+	r := router.New()
 
 	port := fmt.Sprintf(":%d", config.Port)
 	fmt.Printf("Your application is running at port http://localhost%s", port)

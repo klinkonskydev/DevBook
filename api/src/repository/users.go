@@ -3,31 +3,30 @@ package repository
 
 import (
 	"database/sql"
-	"fmt"
 
 	"api/src/models"
 )
 
-type users struct {
+type userRepository struct {
 	db *sql.DB
 }
 
 // UsersRepository create an user repository
-func UsersRepository(db *sql.DB) *users {
-	return &users{db}
+func UsersRepository(db *sql.DB) *userRepository {
+	return &userRepository{db}
 }
 
 // CreateUser insert a new user from database
-func (repo users) CreateUser(user models.User) (uint32, error) {
-	statement, err := repo.db.Prepare(
-		"INSERT INTO users (name, nickname, email, passwordHash) VALUES (?, ?, ?, ?)",
+func (userRepository userRepository) CreateUser(user models.User) (uint32, error) {
+	statement, err := userRepository.db.Prepare(
+		"INSERT INTO users (name, nickname, email, password) VALUES (?, ?, ?, ?)",
 	)
 	if err != nil {
 		return 0, err
 	}
 	defer statement.Close()
 
-	result, err := statement.Exec(&user.Name, &user.Nickname, &user.Email, &user.PasswordHash)
+	result, err := statement.Exec(&user.Name, &user.Nickname, &user.Email, &user.Password)
 	if err != nil {
 		return 0, err
 	}
@@ -41,10 +40,10 @@ func (repo users) CreateUser(user models.User) (uint32, error) {
 }
 
 // GetUsers get all users with includes name or nickname from database
-func (repo users) GetUsers(nameOrNickname string) ([]models.User, error) {
+func (userRepository userRepository) GetUsers(nameOrNickname string) ([]models.User, error) {
 	// Don't use %like% in SQL, instead of like you must use Full-Text Search to improve the performance
 	// See the sql folder and create the Full-Text Search if it not created.
-	rows, err := repo.db.Query(
+	rows, err := userRepository.db.Query(
 		"SELECT id, name, nickname, email, createdAt FROM users WHERE MATCH(name, nickname) AGAINST(?)",
 		nameOrNickname,
 	)
@@ -64,7 +63,6 @@ func (repo users) GetUsers(nameOrNickname string) ([]models.User, error) {
 			&u.Email,
 			&u.CreatedAt,
 		); err != nil {
-			fmt.Println("error 2")
 			return nil, err
 		}
 
@@ -72,4 +70,87 @@ func (repo users) GetUsers(nameOrNickname string) ([]models.User, error) {
 	}
 
 	return users, nil
+}
+
+// GetUserByID get an user from the database where the userID is equals the database user id
+func (userRepository userRepository) GetUserByID(userID uint32) (models.User, error) {
+	rows, err := userRepository.db.Query(
+		"SELECT id, name, nickname, email, createdAt FROM users WHERE id = ?",
+		userID,
+	)
+	if err != nil {
+		return models.User{}, err
+	}
+	defer rows.Close()
+
+	var u models.User
+
+	if rows.Next() {
+		if err := rows.Scan(
+			&u.ID,
+			&u.Name,
+			&u.Nickname,
+			&u.Email,
+			&u.CreatedAt,
+		); err != nil {
+			return models.User{}, err
+		}
+	}
+
+	return u, nil
+} 
+
+// GetUserByID get an user from the database where the user.email is equals the database user email
+func (userRepository userRepository) GetUserByEmail(email *string, password *string) (models.User, error) {
+	row, err := userRepository.db.Query(
+		"SELECT id, password FROM users WHERE email = ?",
+		email,
+	)
+	if err != nil {
+		return models.User{}, err
+	}
+	defer row.Close()
+
+	var user models.User
+	if row.Next() {
+		if err := row.Scan(&user.ID, &user.Password); err != nil {
+			return models.User{}, nil
+		}
+	}
+
+	return user, nil
+}
+
+// EditUser edit an user from the database
+func (userRepository userRepository) EditUser(userID uint32, user models.User) error {
+	statement, err := userRepository.db.Prepare(
+		"UPDATE users SET name = ?, nickname = ?, email = ? WHERE id = ?",
+	)
+	if err != nil {
+		return err
+	}
+	defer statement.Close()
+
+	if _, err = statement.Exec(&user.Name, &user.Nickname, &user.Email, &user.ID); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// DeleteUser remove an user from the database
+func(userRepository userRepository) DeleteUser(userID uint32) error {
+	statement, err := userRepository.db.Prepare(
+		"DELETE FROM users WHERE id = ?",
+	)
+	if err != nil {
+		return err
+	}
+	defer statement.Close()
+
+	if _, err = statement.Exec(userID); err != nil {
+		return err
+	}
+	
+	return nil
 }
