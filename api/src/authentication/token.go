@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"strconv"
 	"strings"
 	"time"
 
@@ -56,4 +57,24 @@ func extractToken(r *http.Request) string {
 	}
 
 	return strings.Split(token, " ")[1]
+}
+
+// GetUserID extracts user id from JWT token
+func GetUserID(r *http.Request) (uint32, error) {
+	tokenString := extractToken(r)
+	token, err := jwt.Parse(tokenString, verificationKey)
+	if err != nil {
+		return 0, err
+	}
+
+	if permissions, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
+		userID, err := strconv.ParseUint(fmt.Sprintf("%.0f", permissions["userID"]), 10, 32)
+		if err != nil {
+			return 0, err
+		}
+
+		return uint32(userID), nil
+	}
+
+	return 0, errors.New("invalid token")
 }

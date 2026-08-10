@@ -2,11 +2,13 @@ package controllers
 
 import (
 	"encoding/json"
+	"errors"
 	"io"
 	"net/http"
 	"strconv"
 	"strings"
 
+	"api/src/authentication"
 	"api/src/database"
 	"api/src/models"
 	"api/src/repository"
@@ -64,7 +66,6 @@ func GetUsers(w http.ResponseWriter, r *http.Request) {
 
 	repository := repository.UsersRepository(db)
 	users, err := repository.GetUsers(nameOrNickname)
-
 	if err != nil {
 		responses.Error(w, http.StatusInternalServerError, err)
 		return
@@ -83,7 +84,17 @@ func GetUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	userIDFromToken, err := authentication.GetUserID(r)
+	if err != nil {
+		responses.Error(w, http.StatusUnauthorized, err)
+		return
+	}
+
 	userID := uint32(userIDu64)
+	if userIDFromToken != userID {
+		responses.Error(w, http.StatusForbidden, errors.New("you can't find another user that is not yours"))
+		return
+	}
 
 	db, err := database.Connect()
 	if err != nil {
@@ -94,7 +105,6 @@ func GetUser(w http.ResponseWriter, r *http.Request) {
 
 	repository := repository.UsersRepository(db)
 	user, err := repository.GetUserByID(userID)
-
 	if err != nil {
 		responses.Error(w, http.StatusInternalServerError, err)
 		return
@@ -109,6 +119,19 @@ func EditUser(w http.ResponseWriter, r *http.Request) {
 	userIDu64, err := strconv.ParseUint(params["id"], 10, 32)
 	if err != nil {
 		responses.Error(w, http.StatusBadRequest, err)
+		return
+	}
+
+	userIDFromToken, err := authentication.GetUserID(r)
+	if err != nil {
+		responses.Error(w, http.StatusUnauthorized, err)
+		return
+	}
+
+	userID := uint32(userIDu64)
+
+	if userIDFromToken != userID {
+		responses.Error(w, http.StatusForbidden, errors.New("you can't update another user that is not yours"))
 		return
 	}
 
@@ -129,9 +152,6 @@ func EditUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userID := uint32(userIDu64)
-
-	// userID := uint32(userIDu64)
 	db, err := database.Connect()
 	if err != nil {
 		responses.Error(w, http.StatusInternalServerError, err)
@@ -145,7 +165,7 @@ func EditUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	responses.JSON(w,	http.StatusNoContent, nil)
+	responses.JSON(w, http.StatusNoContent, nil)
 }
 
 // DeleteUser remove an user in the users table
@@ -157,7 +177,17 @@ func DeleteUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	userIDFromToken, err := authentication.GetUserID(r)
+	if err != nil {
+		responses.Error(w, http.StatusUnauthorized, err)
+		return
+	}
+
 	userID := uint32(userIDu64)
+	if userIDFromToken != userID {
+		responses.Error(w, http.StatusForbidden, errors.New("you can't delete another user that is not yours"))
+		return
+	}
 
 	db, err := database.Connect()
 	if err != nil {

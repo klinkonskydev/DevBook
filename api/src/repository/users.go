@@ -131,7 +131,7 @@ func (userRepository userRepository) EditUser(userID uint32, user models.User) e
 	}
 	defer statement.Close()
 
-	if _, err = statement.Exec(&user.Name, &user.Nickname, &user.Email, &user.ID); err != nil {
+	if _, err = statement.Exec(user.Name, user.Nickname, &user.Email, userID); err != nil {
 		return err
 	}
 
