@@ -154,3 +154,90 @@ func(userRepository userRepository) DeleteUser(userID uint32) error {
 	
 	return nil
 }
+
+// FollowUser will use a junction table for follower and user in the database
+func(userRepository userRepository) FollowUser(userID uint32, followerID uint32) error {
+	statement, err := userRepository.db.Prepare(
+		"INSERT IGNORE INTO followers(user_id, follower_id) VALUES (?, ?)",
+	)
+	if err != nil {
+		return err
+	}
+	defer statement.Close()
+
+	if _, err := statement.Exec(&userID, &followerID); err != nil {
+		return err
+	}
+	
+	return nil
+}
+
+// UnfollowUser will remove the junction table between follower and user in the database
+func(userRepository userRepository) UnfollowUser(userID uint32, followerID uint32) error {
+	statement, err := userRepository.db.Prepare(
+		"DELETE FROM followers WHERE user_id = ? AND follower_id = ?",
+	)
+	if err != nil {
+		return err
+	}
+	defer statement.Close()
+
+	if _, err := statement.Exec(&userID, &followerID); err != nil {
+		return err
+	}
+	
+	return nil
+}
+
+// Followers will return the followers from an user
+func(userRepository userRepository) Followers(userID uint32) ([]models.User, error) {
+	rows, err := userRepository.db.Query(`
+		SELECT u.id, u.name, u.nickname, u.email, u.createdAt FROM users u 
+		INNER JOIN followers f ON u.id = f.follower_id WHERE f.user_id = ?;
+	`, userID)
+	if err != nil {
+		return nil, err
+	}
+
+	defer rows.Close()
+
+	var users []models.User
+	for rows.Next() {
+		var user models.User
+
+		if err := rows.Scan(&user.ID, &user.Name, &user.Nickname, &user.Email, &user.CreatedAt); err != nil {
+			return nil, err
+		}
+
+		users = append(users, user)
+	}
+
+	return users, nil
+}
+
+// Following will return all users that a user follows
+func(userRepository userRepository) Following(userID uint32) ([]models.User, error) {
+	rows, err := userRepository.db.Query(`
+		SELECT u.id, u.name, u.nickname, u.email, u.createdAt FROM users u
+		INNER JOIN followers f ON u.id = f.user_id WHERE f.user_id = ?
+	`, userID)
+	if err != nil {
+		return nil, err
+	}
+
+	defer rows.Close()
+
+	var users []models.User
+
+	for rows.Next() {
+		var user models.User
+
+		if err := rows.Scan(&user.ID, &user.Name, &user.Nickname, &user.Email, &user.CreatedAt); err != nil {
+			return nil, err
+		}
+
+		users = append(users, user)
+	}
+
+	return users, nil
+}

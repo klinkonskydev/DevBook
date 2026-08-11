@@ -204,3 +204,135 @@ func DeleteUser(w http.ResponseWriter, r *http.Request) {
 
 	responses.JSON(w, http.StatusNoContent, nil)
 }
+
+// FollowUser follows an user
+func FollowUser(w http.ResponseWriter, r *http.Request) {
+	followerID, err := authentication.GetUserID(r)
+	if err != nil {
+		responses.Error(w, http.StatusUnauthorized, err)
+		return
+	}
+
+	params := mux.Vars(r)
+	userIDu64, err := strconv.ParseUint(params["id"], 10, 32)
+	if err != nil {
+		responses.Error(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	userID := uint32(userIDu64)
+
+	if userID == followerID {
+		responses.Error(w, http.StatusForbidden, errors.New("isn't possible follow yourself"))
+		return
+	}
+
+	db, err := database.Connect()
+	if err != nil {
+		responses.Error(w, http.StatusInternalServerError, err)
+		return
+	}
+	defer db.Close()
+
+	repository := repository.UsersRepository(db)
+	if err := repository.FollowUser(userID, followerID); err != nil {
+		responses.Error(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	responses.JSON(w, http.StatusCreated, nil)
+}
+
+// UnfollowUser unfollows an user
+func UnfollowUser(w http.ResponseWriter, r *http.Request) {
+	followerID, err := authentication.GetUserID(r)
+	if err != nil {
+		responses.Error(w, http.StatusUnauthorized, err)
+		return
+	}
+
+	params := mux.Vars(r)
+	userIDu64, err := strconv.ParseUint(params["id"], 10, 32)
+	if err != nil {
+		responses.Error(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	userID := uint32(userIDu64)
+
+	if userID == followerID {
+		responses.Error(w, http.StatusForbidden, errors.New("isn't possible unfollow yourself"))
+		return
+	}
+
+	db, err := database.Connect()
+	if err != nil {
+		responses.Error(w, http.StatusInternalServerError, err)
+		return
+	}
+	defer db.Close()
+
+	repository := repository.UsersRepository(db)
+	if err := repository.UnfollowUser(userID, followerID); err != nil {
+		responses.Error(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	responses.JSON(w, http.StatusNoContent, nil)
+}
+
+// Followers show all user followers
+func Followers(w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+	userIDu64, err := strconv.ParseUint(params["id"], 10, 32)
+	if err != nil {
+		responses.Error(w, http.StatusBadRequest, err)
+		return
+	}
+
+	userID := uint32(userIDu64)
+
+	db, err := database.Connect()
+	if err != nil {
+		responses.Error(w, http.StatusInternalServerError, err)
+		return
+	}
+	defer db.Close()
+
+	repository := repository.UsersRepository(db)
+	followers, err := repository.Followers(userID)
+	if err != nil {
+		responses.Error(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	responses.JSON(w, http.StatusOK, followers)
+}
+
+// Following show all user following
+func Following(w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+	userIDu64, err := strconv.ParseUint(params["id"], 10, 32)
+	if err != nil {
+		responses.Error(w, http.StatusBadRequest, err)
+		return
+	}
+
+	userID := uint32(userIDu64)
+
+	db, err := database.Connect()
+	if err != nil {
+		responses.Error(w, http.StatusInternalServerError, err)
+		return
+	}
+	defer db.Close()
+
+	repository := repository.UsersRepository(db)
+	following, err := repository.Following(userID)
+	if err != nil {
+		responses.Error(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	responses.JSON(w, http.StatusOK, following)
+}
