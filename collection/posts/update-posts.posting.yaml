@@ -1,0 +1,18 @@
+name: Update Posts
+description: |-
+  Requires $TOKEN (run Login first). Updates the post created by "Create
+  Post" - only its author can edit it, so run that request first.
+method: PUT
+url: $BASE_URL/posts/$POST_ID
+body:
+  content: |-
+    {
+      "title": "Golang Course",
+      "content": "Hello, World!"
+    }
+  content_type: application/json
+headers:
+- name: Authorization
+  value: Bearer $TOKEN
+- name: content-type
+  value: application/json

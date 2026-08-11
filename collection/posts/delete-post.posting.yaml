@@ -1,0 +1,11 @@
+name: Delete Post
+description: |-
+  Destructive - requires $TOKEN (run Login first). Deletes the post
+  created by "Create Post" (only its author can delete it).
+method: DELETE
+url: $BASE_URL/posts/$POST_ID
+headers:
+- name: Authorization
+  value: Bearer $TOKEN
+- name: content-type
+  value: application/json

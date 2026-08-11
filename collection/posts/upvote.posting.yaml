@@ -1,0 +1,9 @@
+name: Upvote
+description: Requires $TOKEN (run Login first). Upvotes the post created by "Create Post".
+method: POST
+url: $BASE_URL/posts/$POST_ID/upvote
+headers:
+- name: Authorization
+  value: Bearer $TOKEN
+- name: content-type
+  value: application/json

@@ -1,11 +1,16 @@
 name: create
+description: |-
+  Registers a brand new user. Doesn't require auth. Feel free to log in
+  with these credentials afterwards to try the API as this new account.
 method: POST
 url: $BASE_URL/users
 body:
   content: |-
     {
-      "name": "Matheus Gabriel",
-      "email": "confidential@email.com"
+      "name": "Joana Ribeiro",
+      "email": "joana.ribeiro@example.com",
+      "password": "123456",
+      "nickname": "joana.ribeiro"
     }
   content_type: application/json
 headers:

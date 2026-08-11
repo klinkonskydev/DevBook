@@ -1,0 +1,20 @@
+name: Create Post
+description: |-
+  Requires $TOKEN (run Login first). Creates a post and stores its id in
+  $POST_ID, which the other post requests below reuse.
+method: POST
+url: $BASE_URL/posts
+body:
+  content: |-
+    {
+      "title": "Title",
+      "content": "Description"
+    }
+  content_type: application/json
+headers:
+- name: Authorization
+  value: Bearer $TOKEN
+- name: content-type
+  value: application/json
+scripts:
+  on_response: scripts/capture_post_id.py:on_response

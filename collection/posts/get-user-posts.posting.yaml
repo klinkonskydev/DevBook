@@ -1,0 +1,8 @@
+name: Get User Posts
+description: Requires $TOKEN (run Login first). Lists posts authored by $USER_ID.
+url: $BASE_URL/users/$USER_ID/posts
+headers:
+- name: Authorization
+  value: Bearer $TOKEN
+- name: content-type
+  value: application/json

@@ -1,0 +1,7 @@
+name: unfollow an user
+description: Requires $TOKEN (run Login first). Unfollows the seeded user $OTHER_USER_ID.
+method: POST
+url: $BASE_URL/users/$OTHER_USER_ID/unfollow
+headers:
+- name: Authorization
+  value: Bearer $TOKEN

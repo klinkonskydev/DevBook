@@ -1,0 +1,7 @@
+name: follow an user
+description: Requires $TOKEN (run Login first). Follows the seeded user $OTHER_USER_ID.
+method: POST
+url: $BASE_URL/users/$OTHER_USER_ID/follow
+headers:
+- name: Authorization
+  value: Bearer $TOKEN

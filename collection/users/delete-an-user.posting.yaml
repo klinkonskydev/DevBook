@@ -1,3 +1,12 @@
 name: delete an user
+description: |-
+  Destructive - requires $TOKEN (run Login first). The API only lets you
+  delete your own account, so this deletes whoever is currently logged in
+  ($USER_ID). If you don't want to lose the seeded demo account, run
+  "create" first, log in with those credentials instead, then run this.
+  Re-seed with api/sql/data.sql to restore the demo user afterwards.
 method: DELETE
-url: $BASE_URL/users/1
+url: $BASE_URL/users/$USER_ID
+headers:
+- name: Authorization
+  value: Bearer $TOKEN

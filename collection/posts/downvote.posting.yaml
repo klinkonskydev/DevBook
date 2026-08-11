@@ -1,0 +1,9 @@
+name: Downvote
+description: Requires $TOKEN (run Login first). Downvotes the post created by "Create Post".
+method: POST
+url: $BASE_URL/posts/$POST_ID/downvote
+headers:
+- name: Authorization
+  value: Bearer $TOKEN
+- name: content-type
+  value: application/json

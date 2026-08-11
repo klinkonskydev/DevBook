@@ -1,0 +1,10 @@
+name: Get Posts
+description: |-
+  Requires $TOKEN (run Login first). Lists posts from $USER_ID and the
+  users they follow.
+url: $BASE_URL/posts
+headers:
+- name: Authorization
+  value: Bearer $TOKEN
+- name: content-type
+  value: application/json

@@ -1,2 +1,8 @@
 name: get one
-url: $BASE_URL/users/1
+description: |-
+  Requires $TOKEN (run Login first). The API only lets you fetch your own
+  account, so this targets $USER_ID.
+url: $BASE_URL/users/$USER_ID
+headers:
+- name: Authorization
+  value: Bearer $TOKEN

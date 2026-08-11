@@ -1,3 +1,19 @@
 name: edit
+description: |-
+  Requires $TOKEN (run Login first). The API only lets you edit your own
+  account, so this targets $USER_ID.
 method: PUT
-url: $BASE_URL/users/1
+url: $BASE_URL/users/$USER_ID
+body:
+  content: |-
+    {
+        "name": "Ana Silva",
+        "nickname": "ana.silva",
+        "email": "ana.silva@example.com"
+    }
+  content_type: application/json
+headers:
+- name: content-type
+  value: application/json
+- name: Authorization
+  value: Bearer $TOKEN

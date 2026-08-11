@@ -1,0 +1,19 @@
+name: Login
+description: |-
+  Run this first. Logs in as the demo user seeded by api/sql/data.sql and
+  stores the JWT plus its user id in $TOKEN / $USER_ID, which every other
+  request in this collection reuses automatically.
+method: POST
+url: $BASE_URL/login
+body:
+  content: |-
+    {
+      "email": "$DEMO_EMAIL",
+      "password": "$DEMO_PASSWORD"
+    }
+  content_type: application/json
+headers:
+- name: content-type
+  value: application/json
+scripts:
+  on_response: scripts/capture_token.py:on_response

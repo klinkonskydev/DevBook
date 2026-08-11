@@ -1,0 +1,6 @@
+name: following
+description: Requires $TOKEN (run Login first). Lists who $USER_ID follows.
+url: $BASE_URL/users/$USER_ID/following
+headers:
+- name: Authorization
+  value: Bearer $TOKEN

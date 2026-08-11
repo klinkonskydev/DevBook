@@ -1,2 +1,6 @@
 name: get all
+description: Lists/searches users by name or nickname. Doesn't require auth.
 url: $BASE_URL/users
+params:
+- name: q
+  value: ana
