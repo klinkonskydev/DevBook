@@ -13,6 +13,7 @@ import (
 	"api/src/models"
 	"api/src/repository"
 	"api/src/responses"
+	"api/src/security"
 
 	"github.com/gorilla/mux"
 )
@@ -241,6 +242,73 @@ func FollowUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	responses.JSON(w, http.StatusCreated, nil)
+}
+
+// UpdatePassword will change the user password
+func UpdatePassword(w http.ResponseWriter, r *http.Request) {
+	userIDFromToken, err := authentication.GetUserID(r)
+	if err != nil {
+		responses.Error(w, http.StatusUnauthorized, err)
+		return
+	}
+
+	params := mux.Vars(r)
+	userIDu64, err := strconv.ParseUint(params["id"], 10, 32)
+	if err != nil {
+		responses.Error(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	userID := uint32(userIDu64)
+
+	if userIDFromToken != userID {
+		responses.Error(w, http.StatusForbidden, errors.New("isn't possible update an user that is not yours"))
+		return
+	}
+
+	requestBody, err := io.ReadAll(r.Body)
+	if err != nil {
+		responses.Error(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	var password models.Password
+	if err = json.Unmarshal(requestBody, &password); err != nil {
+		responses.Error(w, http.StatusBadRequest, err)
+		return
+	}
+
+	db, err := database.Connect()
+	if err != nil {
+		responses.Error(w, http.StatusInternalServerError, err)
+		return
+	}
+	defer db.Close()
+
+	repository := repository.UsersRepository(db)
+	savedPasswordFromDatabase, err := repository.GetPasswordFromUserID(userID)
+	if err != nil {
+		responses.Error(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	if err = security.CheckPassword(savedPasswordFromDatabase, password.Old); err != nil {
+		responses.Error(w, http.StatusUnauthorized, errors.New("the old password is invalid"))
+		return
+	}
+
+	newHashedPassword, err := security.Hash(password.New)
+	if err != nil {
+		responses.Error(w, http.StatusBadRequest, err)
+		return
+	}
+
+	if err = repository.UpdatePassword(userID, string(newHashedPassword)); err != nil {
+		responses.Error(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	responses.JSON(w, http.StatusNoContent, nil)
 }
 
 // UnfollowUser unfollows an user

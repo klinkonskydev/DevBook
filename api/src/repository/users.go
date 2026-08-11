@@ -98,9 +98,9 @@ func (userRepository userRepository) GetUserByID(userID uint32) (models.User, er
 	}
 
 	return u, nil
-} 
+}
 
-// GetUserByID get an user from the database where the user.email is equals the database user email
+// GetUserByEmail get an user from the database where the user.email is equals the database user email
 func (userRepository userRepository) GetUserByEmail(email *string, password *string) (models.User, error) {
 	row, err := userRepository.db.Query(
 		"SELECT id, password FROM users WHERE email = ?",
@@ -114,7 +114,7 @@ func (userRepository userRepository) GetUserByEmail(email *string, password *str
 	var user models.User
 	if row.Next() {
 		if err := row.Scan(&user.ID, &user.Password); err != nil {
-			return models.User{}, nil
+			return models.User{}, err
 		}
 	}
 
@@ -139,7 +139,7 @@ func (userRepository userRepository) EditUser(userID uint32, user models.User) e
 }
 
 // DeleteUser remove an user from the database
-func(userRepository userRepository) DeleteUser(userID uint32) error {
+func (userRepository userRepository) DeleteUser(userID uint32) error {
 	statement, err := userRepository.db.Prepare(
 		"DELETE FROM users WHERE id = ?",
 	)
@@ -151,12 +151,30 @@ func(userRepository userRepository) DeleteUser(userID uint32) error {
 	if _, err = statement.Exec(userID); err != nil {
 		return err
 	}
-	
+
 	return nil
 }
 
+// GetPasswordFromUserID retriaves the hashed password from the database
+func (userRepository userRepository) GetPasswordFromUserID(userID uint32) (string, error) {
+	row, err := userRepository.db.Query("SELECT password FROM users u WHERE u.id = ?", userID)
+	if err != nil {
+		return "", err
+	}
+	defer row.Close()
+
+	var user models.User
+	if row.Next() {
+		if err = row.Scan(&user.Password); err != nil {
+			return "", err
+		}
+	}
+
+	return user.Password, nil
+}
+
 // FollowUser will use a junction table for follower and user in the database
-func(userRepository userRepository) FollowUser(userID uint32, followerID uint32) error {
+func (userRepository userRepository) FollowUser(userID uint32, followerID uint32) error {
 	statement, err := userRepository.db.Prepare(
 		"INSERT IGNORE INTO followers(user_id, follower_id) VALUES (?, ?)",
 	)
@@ -168,12 +186,12 @@ func(userRepository userRepository) FollowUser(userID uint32, followerID uint32)
 	if _, err := statement.Exec(&userID, &followerID); err != nil {
 		return err
 	}
-	
+
 	return nil
 }
 
 // UnfollowUser will remove the junction table between follower and user in the database
-func(userRepository userRepository) UnfollowUser(userID uint32, followerID uint32) error {
+func (userRepository userRepository) UnfollowUser(userID uint32, followerID uint32) error {
 	statement, err := userRepository.db.Prepare(
 		"DELETE FROM followers WHERE user_id = ? AND follower_id = ?",
 	)
@@ -185,12 +203,12 @@ func(userRepository userRepository) UnfollowUser(userID uint32, followerID uint3
 	if _, err := statement.Exec(&userID, &followerID); err != nil {
 		return err
 	}
-	
+
 	return nil
 }
 
 // Followers will return the followers from an user
-func(userRepository userRepository) Followers(userID uint32) ([]models.User, error) {
+func (userRepository userRepository) Followers(userID uint32) ([]models.User, error) {
 	rows, err := userRepository.db.Query(`
 		SELECT u.id, u.name, u.nickname, u.email, u.createdAt FROM users u 
 		INNER JOIN followers f ON u.id = f.follower_id WHERE f.user_id = ?;
@@ -216,7 +234,7 @@ func(userRepository userRepository) Followers(userID uint32) ([]models.User, err
 }
 
 // Following will return all users that a user follows
-func(userRepository userRepository) Following(userID uint32) ([]models.User, error) {
+func (userRepository userRepository) Following(userID uint32) ([]models.User, error) {
 	rows, err := userRepository.db.Query(`
 		SELECT u.id, u.name, u.nickname, u.email, u.createdAt FROM users u
 		INNER JOIN followers f ON u.id = f.user_id WHERE f.user_id = ?
@@ -240,4 +258,19 @@ func(userRepository userRepository) Following(userID uint32) ([]models.User, err
 	}
 
 	return users, nil
+}
+
+// UpdatePassword will change an user password
+func (userRepository userRepository) UpdatePassword(userID uint32, newHashedPassword string) error {
+	statement, err := userRepository.db.Prepare("UPDATE users SET password = ? WHERE id = ?")
+	if err != nil {
+		return err
+	}
+	defer statement.Close()
+
+	if _, err := statement.Exec(&newHashedPassword, &userID); err != nil {
+		return err
+	}
+
+	return nil
 }
