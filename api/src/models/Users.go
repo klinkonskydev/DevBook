@@ -20,13 +20,13 @@ type User struct {
 	CreatedAt time.Time `json:"createdAt,omitempty"`
 }
 
-// Prepare will validate and formate the fields
+// Prepare will validate and format the fields
 func (u *User) Prepare(step string) error {
 	if err := u.validate(step); err != nil {
 		return err
 	}
 
-	if err := u.formate(step); err != nil {
+	if err := u.format(step); err != nil {
 		return err
 	}
 
@@ -57,7 +57,7 @@ func (u *User) validate(step string) error {
 	return nil
 }
 
-func (u *User) formate(step string) error {
+func (u *User) format(step string) error {
 	u.Name = strings.TrimSpace(u.Name)
 	u.Email = strings.TrimSpace(u.Email)
 	u.Nickname = strings.TrimSpace(u.Nickname)
