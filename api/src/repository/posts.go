@@ -72,11 +72,10 @@ func(postsRepository postsRepository) GetByID(userID uint32) (models.Post, error
 // Get get all user connections posts
 func(postsRepository postsRepository) Get(userID uint32) ([]models.Post, error) {
 	rows, err := postsRepository.db.Query(`
-		SELECT DISTINCT p.*, u.nickname FROM posts p 
-		INNER JOIN users u ON u.id = p.author_id 
-		INNER JOIN followers f ON p.author_id = f.user_id 
-		WHERE u.id = ? OR f.follower_id = ?
-		ORDER BY 1 desc
+		 SELECT DISTINCT p.*, nickname FROM posts p
+		 INNER JOIN users u ON u.id = p.author_id 
+		 LEFT JOIN followers f ON p.author_id = f.user_id 
+		 WHERE u.id = ? OR f.follower_id = ?
 	`, userID, userID)
 	if err != nil {
 		return nil, err

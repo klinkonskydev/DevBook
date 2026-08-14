@@ -1,0 +1,41 @@
+{{ define "upvotes" }}
+<i class="fas fa-heart upvote-post" style="cursor: pointer;"></i>
+<span> {{ .Upvotes }} </span>
+{{ end }}
+
+{{ define "edit" }}
+<a href="/posts/{{ .ID }}/edit" style="text-decoration: none;">
+    <i class="fas fa-edit"></i>
+</a>
+{{ end }}
+
+{{ define "delete" }}
+    <i class="fas fa-trash text-danger delete-post" style="cursor: pointer;"></i>
+{{ end }}
+
+{{ define "post-header" }}
+    <h1 class="display-4"> {{ .Title }} </h1>
+    <p class="lead">{{ .Content }}</p>
+    <a href="/users/{{ .AuthorID }}"> {{ .AuthorNickname }} - {{ .CreatedAt.Format "02/01/2006" }} </a>
+    <hr class="my-4">
+{{ end }}
+
+{{ define "post-with-permission" }}
+    <div class="jumbotron" data-post-id="{{ .ID }}">
+        {{ template "post-header" . }}
+        <p>
+            {{ template "upvotes" . }}
+            {{ template "edit" . }}
+            {{ template "delete" . }}
+        </p>
+    </div>
+{{ end }}
+
+{{ define "post-without-permission" }}
+    <div class="jumbotron" data-post-id="{{ .ID }}">
+        {{ template "post-header" . }}
+        <p>
+            {{ template "upvotes" . }}
+        </p>
+    </div>
+{{ end }}

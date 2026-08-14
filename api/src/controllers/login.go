@@ -11,6 +11,7 @@ import (
 	"errors"
 	"io"
 	"net/http"
+	"strconv"
 )
 
 // Login is responsible for authenticate an user
@@ -52,5 +53,6 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write([]byte(token))
+	userID := strconv.Itoa(int(savedUserFromDatabse.ID))
+	responses.JSON(w, http.StatusOK, models.Authentication{ ID: userID, Token: token })
 }
